@@ -218,7 +218,9 @@ public:
 		Coordinate Qa;
 		Qa = btNodes.nodeMesProper(a->getCoord(), Qa, btNodes.getArrel());
 
-		// 3. Buscar camí més curt amb BFS a m_grafNodesCami
+		// 3. Buscar camí més curt amb dijkstra a m_grafNodesCami
 		std::vector<Coordinate> camiCurt = m_grafNodesCami.camiCurt(Qdesde, Qa);
+
+		return new CamiSolucio(camiCurt);
 	}
 };
