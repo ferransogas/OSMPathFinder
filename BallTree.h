@@ -86,8 +86,10 @@ private:
 	std::vector<Coordinate> m_coordenades;
 
 	Coordinate getNodeLlunya(const std::vector<Coordinate> &coords, const Coordinate &pivot);
+	void inOrdre(BallTree* node, std::vector<std::list<Coordinate>>& out);
+	void preOrdre(BallTree* node, std::vector<std::list<Coordinate>>& out);
+	void postOrdre(BallTree* node, std::vector<std::list<Coordinate>>& out);
 };
 
 
 #endif
-

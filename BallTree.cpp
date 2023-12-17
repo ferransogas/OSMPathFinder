@@ -68,16 +68,65 @@ void BallTree::construirArbre(const std::vector<Coordinate> &coordenades)
 
 void BallTree::inOrdre(std::vector<std::list<Coordinate>> &out)
 {
-    // TODO: TASCA 2
+    inOrdre(m_root, out);
 }
 void BallTree::preOrdre(std::vector<std::list<Coordinate>> &out)
 {
-    // TODO: TASCA 2
+    preOrdre(m_root, out);
 }
 
 void BallTree::postOrdre(std::vector<std::list<Coordinate>> &out)
 {
-    // TODO: TASCA 2
+    postOrdre(m_root, out);
+}
+
+void BallTree::inOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
+{
+    if (node != nullptr)
+    {
+        inOrdre(node->m_left, out);
+
+        std::list<Coordinate> coordinateList;
+        for (auto coord : node->m_coordenades)
+        {
+            coordinateList.push_back(coord);
+        }
+        out.push_back(coordinateList);
+
+        inOrdre(node->m_right, out);
+    }
+}
+void BallTree::preOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
+{
+    if (node != nullptr)
+    {
+        std::list<Coordinate> coordinateList;
+        for (auto coord : node->m_coordenades)
+        {
+            coordinateList.push_back(coord);
+        }
+        out.push_back(coordinateList);
+
+        preOrdre(node->m_left, out);
+
+        preOrdre(node->m_right, out);
+    }
+}
+void BallTree::postOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
+{
+    if (node != nullptr)
+    {
+        postOrdre(node->m_left, out);
+
+        postOrdre(node->m_right, out);
+
+        std::list<Coordinate> coordinateList;
+        for (auto coord : node->m_coordenades)
+        {
+            coordinateList.push_back(coord);
+        }
+        out.push_back(coordinateList);
+    }
 }
 
 Coordinate BallTree::nodeMesProper(Coordinate targetQuery, Coordinate &Q, BallTree *ball)
