@@ -3,6 +3,10 @@
 #include <iomanip>
 #include <vector>
 #include <algorithm>
+#include <stack>
+#include <limits>
+
+const int Graf::DISTMAX{std::numeric_limits<int>::max()};
 
 Graf::Graf()
 {
@@ -29,17 +33,18 @@ void Graf::inserirAresta(std::vector<Coordinate> nodes)
             {
                 // Recorrem les columnes de la matriu
                 // m=i+1 ja que el graf és simètric
-                for (int m = i+1; m < m_numNodes; ++m)
+                for (int m = i + 1; m < m_numNodes; ++m)
                 {
                     // Recorrem les coordenades del vector node per enllaçar-les a la coordenada de posicio j
                     // n=j+1 ja que el graf és simètric
                     for (int n = j + 1; n < nodes.size(); ++n)
                     {
                         // Busquem si node de la matriu i node del vector correspon
-                        if(m_nodes[m].lat==nodes[n].lat && m_nodes[m].lon==nodes[n].lon){
+                        if (m_nodes[m].lat == nodes[n].lat && m_nodes[m].lon == nodes[n].lon)
+                        {
                             // Inserim en la posicio [i][m] de la matriu la relació ponderada amb valor DistanciaHaversine() de entre nodes [j] i [n]
-                            m_matriuAdj[i][m]=Util::DistanciaHaversine(nodes[j],nodes[n]);
-                            m_matriuAdj[m][i]=Util::DistanciaHaversine(nodes[n],nodes[j]);
+                            m_matriuAdj[i][m] = Util::DistanciaHaversine(nodes[j], nodes[n]);
+                            m_matriuAdj[m][i] = Util::DistanciaHaversine(nodes[n], nodes[j]);
                             m_numArestes++;
                         }
                     }
@@ -118,4 +123,88 @@ void Graf::eliminarNode(const Coordinate &node)
         // Indicar que tenim un node menys
         m_numNodes--;
     }
+}
+
+std::vector<Coordinate> Graf::camiCurt(const Coordinate &a, const Coordinate &b)
+{
+    std::vector<int> dist;
+    std::vector<size_t> anterior;
+
+    size_t node_inicial = -1, node_final = -1;
+    bool trobats = false;
+    for (int i = 0; i < m_numNodes && !trobats; ++i)
+    {
+        if (m_nodes[i].lat == a.lat && m_nodes[i].lon == a.lon)
+            node_inicial = i;
+        if (m_nodes[i].lat == b.lat && m_nodes[i].lon == b.lon)
+            node_final = i;
+        if (node_inicial != -1 && node_final != -1)
+            trobats = true;
+    }
+
+    dijkstra(node_inicial, node_final, dist, anterior);
+
+    std::stack<Coordinate> cami;
+
+    cami.push(m_nodes[node_final]);
+
+    int it = node_final;
+    while (it != node_inicial)
+    {
+        cami.push(m_nodes[anterior[it]]);
+        it = anterior[it];
+    }
+
+    std::vector<Coordinate> vecCami;
+    while (!cami.empty())
+    {
+        vecCami.push_back(cami.top());
+        cami.pop();
+    }
+
+    return vecCami;
+}
+
+void Graf::dijkstra(int node_inicial, int node_final, std::vector<int> dist, std::vector<size_t> anterior)
+{
+    dist.resize(m_numNodes, DISTMAX);
+    dist[node_inicial] = 0;
+    std::vector<bool> visitat;
+    visitat.resize(m_numNodes, false);
+    anterior.resize(m_numNodes, -1);
+    anterior[node_inicial] = node_inicial;
+
+    for (int i = 0; i < m_numNodes - 1; ++i)
+    {
+        int actual = minDistance(dist, visitat);
+        visitat[actual] = true;
+        if (actual == node_final)
+            return;
+        for (int j = 0; j < m_numNodes; ++j)
+        {
+            if (!visitat[j] && m_matriuAdj[actual][j] != 0 && dist[actual] + m_matriuAdj[actual][j] < dist[j])
+            {
+                dist[j] = dist[actual] + m_matriuAdj[actual][j];
+                anterior[j] = actual;
+            }
+        }
+    }
+}
+
+size_t Graf::minDistance(const std::vector<int> &dist, const std::vector<bool> &visitat) const
+{
+    // Initialize min value
+    int min = DISTMAX;
+    size_t minIndex = -1;
+
+    for (int i = 0; i < m_numNodes; ++i)
+    {
+        if (!visitat[i] && dist[i] <= min)
+        {
+            min = dist[i];
+            minIndex = i;
+        }
+    }
+
+    return minIndex;
 }
