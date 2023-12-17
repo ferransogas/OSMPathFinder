@@ -64,7 +64,7 @@ public:
 
 	void setCoordenades(std::vector<Coordinate>& coordenades) {
 		m_coordenades = coordenades;
-	}
+	}	
 
     Coordinate nodeMesProper(Coordinate targetQuery, Coordinate& Q, BallTree* ball);
 
@@ -85,6 +85,7 @@ private:
 	Coordinate m_pivot;
 	std::vector<Coordinate> m_coordenades;
 
+	Coordinate getNodeLlunya(const std::vector<Coordinate> &coords, const Coordinate &pivot);
 };
 
 
