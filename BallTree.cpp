@@ -131,7 +131,48 @@ void BallTree::postOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out
 
 Coordinate BallTree::nodeMesProper(Coordinate targetQuery, Coordinate &Q, BallTree *ball)
 {
-    // TODO: TASCA 3
+    if (ball == m_root)
+    {
+        Coordinate K;
+        K.lat = 0;
+        K.lon = 0;
+        Q = K;
+    }
+
+    double D1 = Util::DistanciaHaversine(targetQuery, ball->m_pivot);
+    double D2 = Util::DistanciaHaversine(ball->m_pivot, Q);
+
+    if (D1 - ball->m_radi >= D2)
+    {
+        return Q;
+    }
+
+    // Si la bola és una fulla
+    if (ball->m_left == nullptr && ball->m_right == nullptr)
+    {
+        for (auto &coord : ball->m_coordenades)
+        {
+            if (Util::DistanciaHaversine(targetQuery, coord) < Util::DistanciaHaversine(targetQuery, Q))
+            {
+                Q = coord;
+            }
+        }
+        return Q;
+    }
+
+    double Da = ball->m_left ? Util::DistanciaHaversine(targetQuery, ball->m_left->m_pivot) : std::numeric_limits<double>::max();
+    double Db = ball->m_right ? Util::DistanciaHaversine(targetQuery, ball->m_right->m_pivot) : std::numeric_limits<double>::max();
+
+    if (Da < Db)
+    {
+        Q = nodeMesProper(targetQuery, Q, ball->m_left);
+        return nodeMesProper(targetQuery, Q, ball->m_right);
+    }
+    else
+    {
+        Q = nodeMesProper(targetQuery, Q, ball->m_right);
+        return nodeMesProper(targetQuery, Q, ball->m_left);
+    }
 }
 
 Coordinate BallTree::getNodeLlunya(const std::vector<Coordinate> &coords, const Coordinate &pivot)
