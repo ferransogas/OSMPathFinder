@@ -10,35 +10,43 @@ Graf::Graf()
     m_numArestes = 0;
 }
 
-Graf::Graf(const std::vector<std::string>& nodes, const std::vector<std::vector<int>>& parelles_nodes)
-{
-    m_nodes = nodes;
-    m_numNodes = m_nodes.size();
-    m_numArestes = parelles_nodes.size();
-    crearMatriu(parelles_nodes);
-}
-
 Graf::~Graf()
 {
 }
 
-void Graf::crearMatriu(const std::vector<std::vector<int>>& parelles)
+void Graf::inserirAresta(std::vector<Coordinate> nodes)
 {
-    m_matriuAdj.resize(m_numNodes);
-    for (size_t i = 0; i < m_numNodes; i++)
-    {
-        m_matriuAdj[i].resize(m_numNodes, 0);
-    }
-    for(size_t i=0; i<parelles.size();i++){
-        m_matriuAdj[parelles[i][0]][parelles[i][1]]=1;
-        m_matriuAdj[parelles[i][1]][parelles[i][0]]=1;
-    }
-}
+    // Tots els nodes del vector estan rel·lacionats entre ells, el seus pesos són les DistanciaHaversine()
 
-void Graf::inserirAresta(int posNode1, int posNode2)
-{
-    m_matriuAdj[posNode1][posNode2] = 1;
-    m_matriuAdj[posNode2][posNode1] = 1;
+    // Recorrem les files de la matriu
+    for (int i = 0; i < m_numNodes; ++i)
+    {
+        // Recorrem les coordenades del vector node
+        for (int j = 0; j < nodes.size(); ++j)
+        {
+            // Busquem si node de la matriu i node del vector correspon
+            if (m_nodes[i].lat == nodes[j].lat && m_nodes[i].lon == nodes[j].lon)
+            {
+                // Recorrem les columnes de la matriu
+                // m=i+1 ja que el graf és simètric
+                for (int m = i+1; m < m_numNodes; ++m)
+                {
+                    // Recorrem les coordenades del vector node per enllaçar-les a la coordenada de posicio j
+                    // n=j+1 ja que el graf és simètric
+                    for (int n = j + 1; n < nodes.size(); ++n)
+                    {
+                        // Busquem si node de la matriu i node del vector correspon
+                        if(m_nodes[m].lat==nodes[n].lat && m_nodes[m].lon==nodes[n].lon){
+                            // Inserim en la posicio [i][m] de la matriu la relació ponderada amb valor DistanciaHaversine() de entre nodes [j] i [n]
+                            m_matriuAdj[i][m]=Util::DistanciaHaversine(nodes[j],nodes[n]);
+                            m_matriuAdj[m][i]=Util::DistanciaHaversine(nodes[n],nodes[j]);
+                            m_numArestes++;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void Graf::eliminarAresta(int posNode1, int posNode2)
@@ -47,85 +55,67 @@ void Graf::eliminarAresta(int posNode1, int posNode2)
     m_matriuAdj[posNode2][posNode1] = 0;
 }
 
-void Graf::afegirNode(const std::string& node)
+void Graf::afegirNode(const Coordinate &node)
 {
-    //m_nodes.resize(m_numNodes);
-    m_nodes.push_back(node);
+    // Busquem que el node no existeixi per no afegir repetits
+    bool trobat = false;
+    for (auto it = m_nodes.begin(); it < m_nodes.end() && !trobat; ++it)
+    {
+        if (it->lat == node.lat && it->lon == node.lon)
+        {
+            trobat = true;
+        }
+    }
 
-    // add a row
-    m_matriuAdj.push_back(std::vector<int>(m_numNodes));
+    if (!trobat)
+    {
+        // Afegir node al vector m_nodes
+        m_nodes.push_back(node);
 
-    m_numNodes++;
+        // Afegir una fila per aquell nou node
+        m_matriuAdj.push_back(std::vector<double>(m_numNodes));
 
-    //m_matriuAdj.resize(m_numNodes);
-    for (int i = 0; i < m_numNodes; i++) m_matriuAdj[i].push_back(0);
+        // Indicar que tenim un node més
+        m_numNodes++;
+
+        // Afegir un 0 (no relació) per cada node
+        for (int i = 0; i < m_numNodes; i++)
+            m_matriuAdj[i].push_back(0);
+    }
 }
 
-void Graf::eliminarNode(const std::string& node)
+void Graf::eliminarNode(const Coordinate &node)
 {
-    //busquem la posició del node a esborrar
-    std::vector<std::string>::iterator it;
-    
-    it = std::find(m_nodes.begin(), m_nodes.end(), node);
+    // Busquem la posició del node a esborrar
+    std::vector<Coordinate>::iterator it;
 
-    //eliminem el node del vector de nodes i de la matriu d'adjacència
-    if (it != m_nodes.end())
+    bool trobat = false;
+    for (it = m_nodes.begin(); it < m_nodes.end() && !trobat; ++it)
     {
+        if (it->lat == node.lat && it->lon == node.lon)
+        {
+            trobat = true;
+        }
+    }
+
+    // Eliminem el node del vector de nodes i de la matriu d'adjacència
+    if (trobat)
+    {
+        // Posició en el vector del node a borrar guardada a pos
         size_t pos = distance(m_nodes.begin(), it);
-        // eliminem el node del vector de nodes
+
+        // Eliminem el node del vector de nodes
         m_nodes.erase(m_nodes.begin() + pos);
 
-        // eliminem la fila i la columna de la matriu d'adjacència corresponents
-        // a aquest node
+        // Eliminem la fila i la columna de la matriu d'adjacència corresponents a aquest node
         m_matriuAdj.erase(m_matriuAdj.begin() + pos);
 
         for (int i = 0; i < m_numNodes; i++)
         {
             m_matriuAdj[i].erase(m_matriuAdj[i].begin() + pos);
         }
+
+        // Indicar que tenim un node menys
         m_numNodes--;
     }
 }
-
-std::vector<std::vector<int>> Graf::cicles()
-{
-    std::vector<std::vector<int>> parades_cicles;
-
-    // TODO IMPLEMENTAR
-    for(int i = 0; i < m_numNodes; ++i){
-        for(int j = i+1; j < m_numNodes; ++j){
-            if(m_matriuAdj[i][j]==1){
-                for(int m = j+1; m < m_numNodes; ++m){
-                    if(m_matriuAdj[i][m]==1 && m_matriuAdj[j][m]==1){
-                        parades_cicles.push_back({i,j,m});
-                    }
-                }
-            }
-        }
-    }
-
-    return parades_cicles;
-}
-
-void Graf::mostra()
-{
-    int mida_c = 4;
-    // imprimim el nom dels vèrtexs
-    std::cout << std::setw(mida_c) << " ";
-    for (size_t j = 0; j < m_numNodes; j++)
-    {
-        std::cout << std::setw(mida_c) << m_nodes[j] << " ";
-    }
-    std::cout << std::endl;
-
-    for (size_t i = 0; i < m_numNodes; i++)
-    {
-        std::cout << std::setw(10) << m_nodes[i] << " ";
-        for (size_t j = 0; j < m_numNodes; j++)
-        {
-            std::cout << std::setw(mida_c) << m_matriuAdj[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-

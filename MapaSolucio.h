@@ -4,12 +4,14 @@
 #include "PuntDeInteresRestaurantSolucio.h"
 #include "CamiSolucio.h"
 #include "Util.h"
+#include "GrafSolucio.h"
 
 class MapaSolucio : public MapaBase
 {
 private:
 	std::vector<PuntDeInteresBase*> m_pdis;
 	std::vector<CamiBase*> m_camins;
+	Graf m_grafNodesCami;
 
 	typedef struct {
 		std::string id;
@@ -104,7 +106,8 @@ public:
 				//NODE DE CAM� SON NODES SENSE NOM, SENSE TAGS(EQUIVAL A SENSE NOM), O AMB TAGS ESPECIFICS(bool esCami)
 				if (nom == "undefinit" || esCami) {
 					ndCami nd; nd.id = id; nd.c.lat = c.lat; nd.c.lon = c.lon;
-					ndCamins.push_back(nd); //AFEGIM NODE CAMI AL VECTOR (OJALA HASH) ndCamins PER POSTERIORMENT TROBAR-LOS QUAN UN <way> ELS NECESSITI
+					ndCamins.push_back(nd); //AFEGIM NODE CAMI AL VECTOR ndCamins PER POSTERIORMENT TROBAR-LOS QUAN UN <way> ELS NECESSITI
+					m_grafNodesCami.afegirNode(nd.c); // Afegim el node camí al graf de nodes cami
 				}
 
 				//NODE DE INTER�S S�N ELS QUE TENEN NOM I NO SON CAMI, PER� NMES BUSQUEM QUE SIGUIN SHOP O AMENITY RESTAURANT
@@ -140,6 +143,7 @@ public:
 
 						}
 					}
+					m_grafNodesCami.inserirAresta(c); // Inserir distàncies entre cada parella de nodes del vector com a arestes amb pesos
 					m_camins.push_back(new CamiSolucio(c));
 				}
 			}
@@ -148,5 +152,10 @@ public:
 
 	
     // Metode a implementar de la segona part
-    CamiBase* buscaCamiMesCurt(PuntDeInteresBase* desde, PuntDeInteresBase* a);
+    CamiBase* buscaCamiMesCurt(PuntDeInteresBase* desde, PuntDeInteresBase* a){
+		
+		// 1. BallTree per trobar node camí més proper a desde
+		// 2. BallTree per trobar node camí més proper a a
+		// 3. Buscar camí més curt amb BFS a m_grafNodesCami
+	}
 };
