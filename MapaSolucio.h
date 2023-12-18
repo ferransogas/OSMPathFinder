@@ -4,6 +4,7 @@
 #include "PuntDeInteresRestaurantSolucio.h"
 #include "CamiSolucio.h"
 #include "Util.h"
+#include "BallTree.h"
 #include "GrafSolucio.h"
 
 class MapaSolucio : public MapaBase
@@ -197,14 +198,17 @@ public:
 	}
 
 	// Metode a implementar de la segona part
-	CamiBase *buscaCamiMesCurt(PuntDeInteresBase *desde, PuntDeInteresBase *a)
+	/*CamiBase *buscaCamiMesCurt(PuntDeInteresBase *desde, PuntDeInteresBase *a)
 	{
 		// Convertir vector ndCamins que conté tots els nodes camí a vector<Coordinate>
 		// per tal de que sigui funcional amb BallTree::construirArbre()
 		std::vector<Coordinate> coordNdCamins;
 		for (auto it = ndCamins.begin(); it != ndCamins.end(); ++it)
 		{
-			coordNdCamins.emplace_back(it->c.lat, it->c.lon);
+			Coordinate temp;
+			temp.lat = it->c.lat;
+			temp.lon = it->c.lon;
+			coordNdCamins.push_back(temp);
 		}
 		// Crear BallTree dels nodes camí obtinguts en el vector i guardats a ndCamins
 		BallTree btNodes;
@@ -222,5 +226,8 @@ public:
 		std::vector<Coordinate> camiCurt = m_grafNodesCami.camiCurt(Qdesde, Qa);
 
 		return new CamiSolucio(camiCurt);
-	}
+	}*/
+
+    CamiBase * buscaCamiMesCurt(PuntDeInteresBase *desde, PuntDeInteresBase *a);
 };
+

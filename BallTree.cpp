@@ -2,22 +2,28 @@
 
 void BallTree::construirArbre(const std::vector<Coordinate> &coordenades)
 {
-    if (coordenades.empty())
+
+    
+    // Assignar les coordenades que existeixen dins de la bola
+    m_coordenades = coordenades;
+
+    if (m_coordenades.empty())
         return;
 
     // Si només hi ha 1 coordenada, aquella és m_pivot
-    if (coordenades.size() == 1)
+    if (m_coordenades.size() == 1)
     {
         m_pivot = coordenades[0];
         return;
     }
 
     // Calcular la coordenada punt central (punt C) del vector coordenades
-    m_coordenades = coordenades;
     m_pivot = Util::calcularPuntCentral(m_coordenades);
 
     // Calcular totes les distàncies desde els nodes fins al punt C i obtenir el més llunyà (punt A)
     Coordinate puntA = getNodeLlunya(m_coordenades, m_pivot);
+    // El radi de cada bola és la seva distància entre pivot i punt més llunyà
+    m_radi = Util::DistanciaHaversine(puntA, m_pivot);
 
     // Calcular totes les distàncies desde els nodes fins al punt A i obtenir el més llunyà (punt B)
     Coordinate puntB = getNodeLlunya(m_coordenades, puntA);
@@ -34,7 +40,6 @@ void BallTree::construirArbre(const std::vector<Coordinate> &coordenades)
         else
             rightNodes.push_back(coord);
 
-        m_radi = std::max(d1, d2); // Actualitzar el radi de la bola que conté tots els punts
     }
 
     // Construir arbres a esquerra i dreta recursivament
@@ -44,10 +49,7 @@ void BallTree::construirArbre(const std::vector<Coordinate> &coordenades)
         m_left = new BallTree();
 
         // Assignar com a root el BallTree arrel
-        if (m_root == nullptr)
-            m_left->setArrel(this);
-        else
-            m_left->setArrel(this->m_root);
+        m_left->setArrel(this);
 
         // Construir BallRoot per leftNodes
         m_left->construirArbre(leftNodes);
@@ -55,10 +57,7 @@ void BallTree::construirArbre(const std::vector<Coordinate> &coordenades)
     if (!rightNodes.empty())
     {
         m_right = new BallTree();
-        if (m_root == nullptr)
-            m_right->setArrel(this);
-        else
-            m_right->setArrel(this->m_root);
+        m_right->setArrel(this);
         m_right->construirArbre(rightNodes);
     }
 
@@ -70,62 +69,81 @@ void BallTree::inOrdre(std::vector<std::list<Coordinate>> &out)
 {
     inOrdre(m_root, out);
 }
+void BallTree::inOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
+{
+    if (node != nullptr)
+    {
+        if (m_left != nullptr)
+        {
+            inOrdre(node->m_left, out);
+        }
+
+        std::list<Coordinate> llistaCoords;
+        for (auto it = node->m_coordenades.begin(); it != node->m_coordenades.end(); ++it)
+        {
+            llistaCoords.push_back(*it);
+        }
+        out.push_back(llistaCoords);
+
+        if (m_right != nullptr)
+        {
+            inOrdre(node->m_right, out);
+        }
+    }
+}
+
 void BallTree::preOrdre(std::vector<std::list<Coordinate>> &out)
 {
     preOrdre(m_root, out);
+}
+void BallTree::preOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
+{
+
+    if (node != nullptr)
+    {
+        std::list<Coordinate> llistaCoords;
+        for (auto it = node->m_coordenades.begin(); it != node->m_coordenades.end(); ++it)
+        {
+            llistaCoords.push_back(*it);
+        }
+        out.push_back(llistaCoords);
+
+        if (m_left != nullptr)
+        {
+            preOrdre(node->m_left, out);
+        }
+
+        if (m_right != nullptr)
+        {
+            preOrdre(node->m_right, out);
+        }
+    }
 }
 
 void BallTree::postOrdre(std::vector<std::list<Coordinate>> &out)
 {
     postOrdre(m_root, out);
 }
-
-void BallTree::inOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
-{
-    if (node != nullptr)
-    {
-        inOrdre(node->m_left, out);
-
-        std::list<Coordinate> coordinateList;
-        for (auto coord : node->m_coordenades)
-        {
-            coordinateList.push_back(coord);
-        }
-        out.push_back(coordinateList);
-
-        inOrdre(node->m_right, out);
-    }
-}
-void BallTree::preOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
-{
-    if (node != nullptr)
-    {
-        std::list<Coordinate> coordinateList;
-        for (auto coord : node->m_coordenades)
-        {
-            coordinateList.push_back(coord);
-        }
-        out.push_back(coordinateList);
-
-        preOrdre(node->m_left, out);
-
-        preOrdre(node->m_right, out);
-    }
-}
 void BallTree::postOrdre(BallTree *node, std::vector<std::list<Coordinate>> &out)
 {
     if (node != nullptr)
     {
-        postOrdre(node->m_left, out);
-
-        postOrdre(node->m_right, out);
-
-        std::list<Coordinate> coordinateList;
-        for (auto coord : node->m_coordenades)
+        if (m_left != nullptr)
         {
-            coordinateList.push_back(coord);
+            postOrdre(node->m_left, out);
         }
-        out.push_back(coordinateList);
+
+        if (m_right != nullptr)
+        {
+            postOrdre(node->m_right, out);
+        }
+
+        std::list<Coordinate> llistaCoords;
+        for (auto it = node->m_coordenades.begin(); it != node->m_coordenades.end(); ++it)
+        {
+            llistaCoords.push_back(*it);
+        }
+        out.push_back(llistaCoords);
     }
 }
 
@@ -133,13 +151,10 @@ Coordinate BallTree::nodeMesProper(Coordinate targetQuery, Coordinate &Q, BallTr
 {
     if (ball == m_root)
     {
-        Coordinate K;
-        K.lat = 0;
-        K.lon = 0;
-        Q = K;
+        Q = Coordinate{0, 0};
     }
 
-    double D1 = Util::DistanciaHaversine(targetQuery, ball->m_pivot);
+    double D1 = Util::DistanciaHaversine(ball->m_pivot, targetQuery);
     double D2 = Util::DistanciaHaversine(ball->m_pivot, Q);
 
     if (D1 - ball->m_radi >= D2)
@@ -166,13 +181,14 @@ Coordinate BallTree::nodeMesProper(Coordinate targetQuery, Coordinate &Q, BallTr
     if (Da < Db)
     {
         Q = nodeMesProper(targetQuery, Q, ball->m_left);
-        return nodeMesProper(targetQuery, Q, ball->m_right);
+        Q = nodeMesProper(targetQuery, Q, ball->m_right);
     }
     else
     {
         Q = nodeMesProper(targetQuery, Q, ball->m_right);
-        return nodeMesProper(targetQuery, Q, ball->m_left);
+        Q = nodeMesProper(targetQuery, Q, ball->m_left);
     }
+    return Q;
 }
 
 Coordinate BallTree::getNodeLlunya(const std::vector<Coordinate> &coords, const Coordinate &pivot)
