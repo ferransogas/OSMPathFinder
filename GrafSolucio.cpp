@@ -6,7 +6,8 @@
 #include <stack>
 #include <limits>
 
-const int Graf::DISTMAX{std::numeric_limits<int>::max()};
+const double Graf::DISTMAX{std::numeric_limits<double>::max()};
+const int Graf::INTMAX{ std::numeric_limits<int>::max() };
 
 Graf::Graf()
 {
@@ -20,33 +21,20 @@ Graf::~Graf()
 
 void Graf::inserirAresta(std::vector<Coordinate> nodes)
 {
-    // Tots els nodes del vector estan rel·lacionats entre ells, el seus pesos són les DistanciaHaversine()
-
-    // Recorrem les files de la matriu
-    for (int i = 0; i < m_numNodes; ++i)
-    {
-        // Recorrem les coordenades del vector node
-        for (int j = 0; j < nodes.size(); ++j)
-        {
-            // Busquem si node de la matriu i node del vector correspon
-            if (m_nodes[i].lat == nodes[j].lat && m_nodes[i].lon == nodes[j].lon)
-            {
-                // Recorrem les columnes de la matriu
-                // m=i+1 ja que el graf és simètric
-                for (int m = i + 1; m < m_numNodes; ++m)
-                {
-                    // Recorrem les coordenades del vector node per enllaçar-les a la coordenada de posicio j
-                    // n=j+1 ja que el graf és simètric
-                    for (int n = j + 1; n < nodes.size(); ++n)
-                    {
-                        // Busquem si node de la matriu i node del vector correspon
-                        if (m_nodes[m].lat == nodes[n].lat && m_nodes[m].lon == nodes[n].lon)
-                        {
-                            // Inserim en la posicio [i][m] de la matriu la relació ponderada amb valor DistanciaHaversine() de entre nodes [j] i [n]
-                            m_matriuAdj[i][m] = Util::DistanciaHaversine(nodes[j], nodes[n]);
-                            m_matriuAdj[m][i] = Util::DistanciaHaversine(nodes[n], nodes[j]);
-                            m_numArestes++;
-                        }
+    // Cada node està rel·lacionat amb el següent del vector
+    
+    // Recorrer els nodes i del vector
+    for (int i = 0; i < nodes.size() - 1; ++i) {
+        // Per cada node, recórrer els nodes m la matriu
+        for (int m = 0; m < m_numNodes; ++m) {
+            // Quan trobi el m==i que coincideix, recórrer els nodes n de la matriu
+            if (m_nodes[m].lat == nodes[i].lat && m_nodes[m].lon == nodes[i].lon) {
+                for (int n = 0; n < m_numNodes; ++n) {
+                    // Per cada node de la matriu, comprovar si coincideix n==i+1 amb el següent node del vector
+                    if (m_nodes[n].lat == nodes[i + 1].lat && m_nodes[n].lon == nodes[i + 1].lon) {
+                        // Si coincideix, s'afegeix aresta a [m][n] amb pes distanciaHaversine(i,i+1)
+                        m_matriuAdj[m][n] = Util::DistanciaHaversine(nodes[i], nodes[i + 1]);
+                        m_matriuAdj[n][m] = Util::DistanciaHaversine(nodes[i + 1], nodes[i]);
                     }
                 }
             }
@@ -127,10 +115,10 @@ void Graf::eliminarNode(const Coordinate &node)
 
 std::vector<Coordinate> Graf::camiCurt(const Coordinate &a, const Coordinate &b)
 {
-    std::vector<int> dist;
-    std::vector<size_t> anterior;
+    std::vector<double> dist;
+    std::vector<int> anterior;
 
-    size_t node_inicial = -1, node_final = -1;
+    int node_inicial = INTMAX, node_final = INTMAX;
     bool trobats = false;
     for (int i = 0; i < m_numNodes && !trobats; ++i)
     {
@@ -138,7 +126,7 @@ std::vector<Coordinate> Graf::camiCurt(const Coordinate &a, const Coordinate &b)
             node_inicial = i;
         if (m_nodes[i].lat == b.lat && m_nodes[i].lon == b.lon)
             node_final = i;
-        if (node_inicial != -1 && node_final != -1)
+        if (node_inicial != INTMAX && node_final != INTMAX)
             trobats = true;
     }
 
@@ -165,13 +153,13 @@ std::vector<Coordinate> Graf::camiCurt(const Coordinate &a, const Coordinate &b)
     return vecCami;
 }
 
-void Graf::dijkstra(int node_inicial, int node_final, std::vector<int>& dist, std::vector<size_t>& anterior)
+void Graf::dijkstra(int node_inicial, int node_final, std::vector<double>& dist, std::vector<int>& anterior)
 {
     dist.resize(m_numNodes, DISTMAX);
     dist[node_inicial] = 0;
     std::vector<bool> visitat;
     visitat.resize(m_numNodes, false);
-    anterior.resize(m_numNodes, -1);
+    anterior.resize(m_numNodes, INTMAX);
     anterior[node_inicial] = node_inicial;
 
     for (int i = 0; i < m_numNodes - 1; ++i)
@@ -182,7 +170,7 @@ void Graf::dijkstra(int node_inicial, int node_final, std::vector<int>& dist, st
             return;
         for (int j = 0; j < m_numNodes; ++j)
         {
-            if (!visitat[j] && m_matriuAdj[actual][j] != 0 && dist[actual] + m_matriuAdj[actual][j] < dist[j])
+            if (!visitat[j] && m_matriuAdj[actual][j] != 0 && dist[actual] != DISTMAX && m_matriuAdj[actual][j] != DISTMAX && dist[actual] + m_matriuAdj[actual][j] < dist[j])
             {
                 dist[j] = dist[actual] + m_matriuAdj[actual][j];
                 anterior[j] = actual;
@@ -191,11 +179,10 @@ void Graf::dijkstra(int node_inicial, int node_final, std::vector<int>& dist, st
     }
 }
 
-size_t Graf::minDistance(const std::vector<int> &dist, const std::vector<bool> &visitat) const
+int Graf::minDistance(const std::vector<double> &dist, const std::vector<bool> &visitat) const
 {
-    // Initialize min value
-    int min = DISTMAX;
-    size_t minIndex = -1;
+    double min = DISTMAX;
+    int minIndex = INTMAX;
 
     for (int i = 0; i < m_numNodes; ++i)
     {
