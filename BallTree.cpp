@@ -10,12 +10,7 @@ void BallTree::construirArbre(const std::vector<Coordinate> &coordenades)
     if (m_coordenades.empty())
         return;
 
-    // Si només hi ha 1 coordenada, aquella és m_pivot
-    if (m_coordenades.size() == 1)
-    {
-        m_pivot = coordenades[0];
-        return;
-    }
+    
 
     // Calcular la coordenada punt central (punt C) del vector coordenades
     m_pivot = Util::calcularPuntCentral(m_coordenades);
@@ -24,6 +19,12 @@ void BallTree::construirArbre(const std::vector<Coordinate> &coordenades)
     Coordinate puntA = getNodeLlunya(m_coordenades, m_pivot);
     // El radi de cada bola és la seva distància entre pivot i punt més llunyà
     m_radi = Util::DistanciaHaversine(puntA, m_pivot);
+
+    // Si només hi ha 1 coordenada, aquella és m_pivot
+    if (m_coordenades.size() == 1)
+    {
+        return;
+    }
 
     // Calcular totes les distàncies desde els nodes fins al punt A i obtenir el més llunyà (punt B)
     Coordinate puntB = getNodeLlunya(m_coordenades, puntA);
@@ -194,7 +195,7 @@ Coordinate BallTree::nodeMesProper(Coordinate targetQuery, Coordinate &Q, BallTr
 Coordinate BallTree::getNodeLlunya(const std::vector<Coordinate> &coords, const Coordinate &pivot)
 {
     double maxDist = 0;
-    Coordinate nodeLlunya;
+    Coordinate nodeLlunya = m_pivot;
     for (const auto &coord : coords)
     {
         double dist = Util::DistanciaHaversine(coord, pivot);

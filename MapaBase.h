@@ -17,6 +17,7 @@ public:
 	virtual CamiBase* buscaCamiMesCurt(PuntDeInteresBase* desde, PuntDeInteresBase* a) = 0;
 };
 
+
 #endif
 
 

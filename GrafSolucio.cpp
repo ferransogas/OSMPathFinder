@@ -165,7 +165,7 @@ std::vector<Coordinate> Graf::camiCurt(const Coordinate &a, const Coordinate &b)
     return vecCami;
 }
 
-void Graf::dijkstra(int node_inicial, int node_final, std::vector<int> dist, std::vector<size_t> anterior)
+void Graf::dijkstra(int node_inicial, int node_final, std::vector<int>& dist, std::vector<size_t>& anterior)
 {
     dist.resize(m_numNodes, DISTMAX);
     dist[node_inicial] = 0;

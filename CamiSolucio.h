@@ -28,4 +28,3 @@ public:
 		return m_cami;
 	}
 };
-

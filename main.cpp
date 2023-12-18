@@ -10,7 +10,7 @@
 
 // POSA A 'true' PER VEURE ELS DETALLS DEL TESTS
 // POSA A 'false' PER VEURE DIRECTAMENT NUMERO ESTUDIANTS I NOTA
-bool mostraDetalls = true;
+bool mostraDetalls = false;
 
 // Comprova que el inOrdre, preOrdre i postOrdre estiguin per tamanys
 // i coordenades de cadascu pel primer conjunt de dades.

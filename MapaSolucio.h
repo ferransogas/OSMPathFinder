@@ -32,7 +32,7 @@ public:
 
 		m_camins.push_back(new CamiSolucio());*/
 	}
-
+	
 	void getPdis(std::vector<PuntDeInteresBase *> &pdis)
 	{
 		// Omplim el vector que es retorna amb el vector que nosaltres tenim omplert
@@ -64,7 +64,6 @@ public:
 			it = m_camins.erase(it);
 		}
 	}
-
 	void parsejaXmlElements(std::vector<XmlElement> &xmlElements)
 	{
 		// COMEN�AR MIRANT SI �S NODE O WAY
@@ -143,8 +142,18 @@ public:
 					nd.id = id;
 					nd.c.lat = c.lat;
 					nd.c.lon = c.lon;
-					ndCamins.push_back(nd);			  // AFEGIM NODE CAMI AL VECTOR ndCamins PER POSTERIORMENT TROBAR-LOS QUAN UN <way> ELS NECESSITI
-					m_grafNodesCami.afegirNode(nd.c); // Afegim el node camí al graf de nodes cami
+
+					bool repetit = false;				// COMPROVAR QUE NO INSERIM NODES REPETITS
+					for (auto& it : ndCamins) {
+						if (it.c.lat == nd.c.lat && it.c.lon == nd.c.lon) {
+							repetit = true;
+							break;
+						}
+					}
+					if (!repetit) {
+						ndCamins.push_back(nd);			  // AFEGIM NODE CAMI AL VECTOR ndCamins PER POSTERIORMENT TROBAR-LOS QUAN UN <way> ELS NECESSITI
+						m_grafNodesCami.afegirNode(nd.c); // Afegim el node camí al graf de nodes cami
+					}
 				}
 
 				// NODE DE INTER�S S�N ELS QUE TENEN NOM I NO SON CAMI, PER� NMES BUSQUEM QUE SIGUIN SHOP O AMENITY RESTAURANT
@@ -198,36 +207,6 @@ public:
 	}
 
 	// Metode a implementar de la segona part
-	/*CamiBase *buscaCamiMesCurt(PuntDeInteresBase *desde, PuntDeInteresBase *a)
-	{
-		// Convertir vector ndCamins que conté tots els nodes camí a vector<Coordinate>
-		// per tal de que sigui funcional amb BallTree::construirArbre()
-		std::vector<Coordinate> coordNdCamins;
-		for (auto it = ndCamins.begin(); it != ndCamins.end(); ++it)
-		{
-			Coordinate temp;
-			temp.lat = it->c.lat;
-			temp.lon = it->c.lon;
-			coordNdCamins.push_back(temp);
-		}
-		// Crear BallTree dels nodes camí obtinguts en el vector i guardats a ndCamins
-		BallTree btNodes;
-		btNodes.construirArbre(coordNdCamins);
-
-		// 1. BallTree per trobar node camí més proper a desde
-		Coordinate Qdesde;
-		Qdesde = btNodes.nodeMesProper(desde->getCoord(), Qdesde, btNodes.getArrel());
-
-		// 2. BallTree per trobar node camí més proper a a
-		Coordinate Qa;
-		Qa = btNodes.nodeMesProper(a->getCoord(), Qa, btNodes.getArrel());
-
-		// 3. Buscar camí més curt amb dijkstra a m_grafNodesCami
-		std::vector<Coordinate> camiCurt = m_grafNodesCami.camiCurt(Qdesde, Qa);
-
-		return new CamiSolucio(camiCurt);
-	}*/
-
-    CamiBase * buscaCamiMesCurt(PuntDeInteresBase *desde, PuntDeInteresBase *a);
+	CamiBase * buscaCamiMesCurt(PuntDeInteresBase *desde, PuntDeInteresBase *a);
 };
 

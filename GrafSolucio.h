@@ -31,9 +31,10 @@ private:
     size_t m_numNodes;
     size_t m_numArestes;
 
-    void dijkstra(int node_inicial, int node_final, std::vector<int> dist, std::vector<size_t> anterior);
+    void dijkstra(int node_inicial, int node_final, std::vector<int>& dist, std::vector<size_t>& anterior);
     size_t minDistance(const std::vector<int> &dist, const std::vector<bool> &visitat) const;
     static const int DISTMAX;
 };
+
 
 #endif // GRAF

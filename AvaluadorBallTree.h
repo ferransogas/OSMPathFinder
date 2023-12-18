@@ -8,10 +8,11 @@
 #include "BallTree.h"
 #include <vector>
 #include <list>
-
+#include <iostream>
+bool error = false;
 struct NonImplementedBallTree {
 	void mostraMissatge() {
-		std::cout << "==== SI US PLAU, INSTANCIA CORRECTAMENT LA PLANTILLA DEL AVALUADOR ====" << std::endl;
+		error = true;
 	}
 	void preOrdre(std::vector<std::list<Coordinate>>& out) { mostraMissatge(); }
 
